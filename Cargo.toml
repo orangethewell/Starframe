@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 raylib = { version = "= 3.5", features=["nobuild"] }
 raylib-sys = {version = "= 3.5"}
+anymap = "0.12.1"
