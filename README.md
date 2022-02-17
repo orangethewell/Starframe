@@ -2,7 +2,7 @@
 <p align=center><img src=https://img.shields.io/github/last-commit/orangethewell/Starframe> <img alt="GitLab Release (latest by SemVer pre-release)" src="https://img.shields.io/gitlab/v/release/orangethewell/Starframe?include_prereleases"></p>
 
 ![Project banner](assets/images/cover_github_starframe.png)
----
+
 <p align=center>A powerful application to reunite all your games (emulated and native) on a simple customizable UI.</p>
 
 <h4 align=center>🚧 Under Construction 🚧</h4>
