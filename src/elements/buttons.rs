@@ -24,7 +24,7 @@ pub struct Button {
     pub size: Vector2,
     pub is_active: bool,
     pub is_down: bool,
-    pub label: String,
+    pub label: &'static str,
     pub style: ButtonStyle,
     pub color: Color,
     pub background: Color,
@@ -90,8 +90,8 @@ impl ButtonStyle {
             hovering_color: Color::RED,
             hovering_background: Color::LIGHTGRAY,
             
-            down_color: Color::DARKPURPLE,
-            down_background: Color::LIGHTGRAY,
+            down_color: Color::DARKBLUE,
+            down_background: Color::GRAY,
 
         }
     }
@@ -99,7 +99,7 @@ impl ButtonStyle {
 
 impl Button {
 
-    pub fn new(position: Vector2, size: Vector2, label: String, button_style: ButtonStyle) -> Button {
+    pub fn new(position: Vector2, size: Vector2, label: &'static str, button_style: ButtonStyle) -> Button {
         Button {
             position: position,
             size: size,
@@ -118,7 +118,7 @@ impl Button {
     pub fn draw(&mut self, drawing_context: &mut RaylibDrawHandle, dt: f32){
         let center_x = self.position.x + self.size.x / 2.0;
         let center_y = self.position.y + self.size.y / 2.0;
-        let label_x = center_x as i32 - measure_text(self.label.as_str(), 20) / 2;
+        let label_x = center_x as i32 - measure_text(self.label, 20) / 2;
         let label_y = center_y as i32 -  20 / 2;
 
 
@@ -152,7 +152,7 @@ impl Button {
         };
 
         drawing_context.draw_rectangle(self.position.x as i32, self.position.y as i32, self.size.x as i32, self.size.y as i32, self.background);
-        drawing_context.draw_text(self.label.as_str(), label_x, label_y, 20, self.color);
+        drawing_context.draw_text(self.label, label_x, label_y, 20, self.color);
 
     }
 
