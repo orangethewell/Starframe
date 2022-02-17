@@ -1,6 +1,7 @@
 use crate::elements::{AsScene, Cover, Button, ButtonStyle, SceneCommand};
 use raylib::prelude::*;
 
+/// Menu screen. It contains some buttons and animation elements.
 pub struct MainScreen {
     name: &'static str,
 
@@ -12,6 +13,7 @@ pub struct MainScreen {
 
     frame_counter: i32,
     state: i32,
+    opening_rectangle: Vec<Rectangle>
 }
 
 impl MainScreen {
@@ -21,42 +23,42 @@ impl MainScreen {
             name: "Menu",
 
             simple_cover: Cover::new(
-                rl.load_texture(&thread, "resources/paper_mario_cover.png").unwrap(), 
+                rl.load_texture(&thread, "resources/107813.png").unwrap(), 
                 String::from("Paper Mario 64"),
                 Vector2::new(0.0, 0.0), 
-                Vector2::new(0.0, 0.0), 
+                Vector2::new(20.0, 80.0), 
                 Vector2::new(0.0, 0.0)
             ),
             buttons: [
                 Button::new(  // Start
                     Vector2::new(10.0, 10.0),
                     Vector2::new(100.0, 60.0),
-                    String::from("Start"),
+                    "Start",
                     ButtonStyle::build_default_style()
                 ),
                 Button::new(  // Options
                     Vector2::new(250.0, 10.0),
                     Vector2::new(100.0, 60.0),
-                    String::from("Options"),
+                    "Options",
                     ButtonStyle::build_default_style()
                 ),
                 Button::new(  // Exit
                     Vector2::new(540.0, 10.0),
                     Vector2::new(100.0, 60.0),
-                    String::from("Exit"),
+                    "Exit",
                     ButtonStyle::build_default_style()
                 ),
             
                 Button::new(  // Go Left
                     Vector2::new(0.0, 240.0),
                     Vector2::new(20.0, 80.0),
-                    String::from("<"),
+                    "<",
                     ButtonStyle::build_default_style()
                 ),
                 Button::new(  // Go Right
                     Vector2::new(620.0, 240.0),
                     Vector2::new(20.0, 80.0),
-                    String::from(">"),
+                    ">",
                     ButtonStyle::build_default_style()
                 ),
             
@@ -66,7 +68,20 @@ impl MainScreen {
             deltatime: 0.0,
 
             frame_counter: 0,
-            state: 0
+            state: 0,
+            opening_rectangle: vec![
+                Rectangle::new(
+                    0.0, 
+                    0.0, 
+                    rl.get_screen_width() as f32, 
+                    (rl.get_screen_height() / 2) as f32
+                ), // Upside
+                Rectangle::new(
+                    0.0, 
+                    (rl.get_screen_height() / 2) as f32, 
+                    rl.get_screen_width() as f32, 
+                    (rl.get_screen_height() / 2) as f32), // Downside
+            ]
         }
     }
 }
@@ -103,6 +118,47 @@ impl AsScene for MainScreen {
 
     fn update(&mut self, rl: &mut RaylibHandle, thread: &RaylibThread) -> SceneCommand {
         self.start_time = rl.get_time() as f32;
+
+        
+        match self.state { // Opening Animation
+            0 => {
+                for rectangle in self.opening_rectangle.iter_mut() {
+                    if self.state == 0 {
+                        rectangle.width = rl.get_screen_width() as f32;
+                        rectangle.height = rl.get_screen_height() as f32 / 2.0;
+                    }
+                }
+
+                if self.frame_counter >= 180 {
+                    self.state = 1;
+                    self.frame_counter = 0;
+                }
+            }
+
+            1 => {
+                for rectangle in self.opening_rectangle.iter_mut() {
+                    if self.state == 0 {
+                        rectangle.width = rl.get_screen_width() as f32;
+                        rectangle.height = rl.get_screen_height() as f32 / 2.0;
+                    }
+                }
+
+                self.opening_rectangle[0].height = ease::expo_out(
+                    self.frame_counter as f32, 
+                    (rl.get_screen_height() / 2) as f32, -rl.get_screen_height() as f32 * 0.52, 360.0);
+                
+                self.opening_rectangle[1].y = ease::expo_out(
+                    self.frame_counter as f32, 
+                    (rl.get_screen_height() / 2) as f32, rl.get_screen_height() as f32 * 0.52, 360.0);
+
+                if self.frame_counter >= 360 {
+                    println!("bruh.");
+                    self.state = 2;
+                    self.frame_counter = 0;
+                }
+            }
+            _ => {}
+        }
         let screen_size: Vector2 = Vector2::new(
             rl.get_screen_width() as f32, 
             rl.get_screen_height() as f32
@@ -132,8 +188,8 @@ impl AsScene for MainScreen {
 
         self.buttons[3].position.y = screen_size.y / 2.0; // Go Left display
         
-        self.simple_cover.pos = Vector2::new(20.0, 80.0);
-        self.simple_cover.size = Vector2::new(screen_size.x - 80.0, screen_size.y - 80.0);
+        // self.simple_cover.pos = Vector2::new(20.0, 80.0);
+        self.simple_cover.size = Vector2::new(screen_size.x - 40.0, screen_size.y - 80.0);
         
         for button in &mut self.buttons {
             if button.is_hover(cursor) && rl.is_mouse_button_down(MouseButton::MOUSE_LEFT_BUTTON) {
@@ -143,6 +199,10 @@ impl AsScene for MainScreen {
             }
         }
 
+        if self.buttons[2].is_hover(cursor) && rl.is_mouse_button_pressed(MouseButton::MOUSE_LEFT_BUTTON) {
+                return SceneCommand::exit_program();
+            }
+
         {
             let mut d: RaylibDrawHandle = rl.begin_drawing(&thread);
             d.clear_background(Color::RAYWHITE);
@@ -150,6 +210,13 @@ impl AsScene for MainScreen {
             self.simple_cover.draw(&mut d, screen_size);
             self.simple_cover.draw_lines(&mut d);
 
+            d.draw_rectangle(
+                0,
+                0, 
+                screen_size.x as i32, 
+                80, 
+                Color::WHITE
+            );
             d.draw_line_ex( 
                 // This line marks the upside of buttons and the downside of covers,
                 // it means that cover area is screen's size minus 80 pixels.
@@ -162,11 +229,14 @@ impl AsScene for MainScreen {
             for button in &mut self.buttons {
                 button.draw(&mut d, self.deltatime)
             }
-
-            
+            if self.state < 2 {
+                d.draw_rectangle_rec(self.opening_rectangle[1], Color::BLACK);
+                d.draw_rectangle_rec(self.opening_rectangle[0], Color::BLACK);
+            }
         }
         self.end_time = rl.get_time() as f32;
         self.deltatime = self.end_time - self.start_time;
+        self.frame_counter += 1;
         SceneCommand::continue_program()
     }
     
